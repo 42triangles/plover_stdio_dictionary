@@ -181,5 +181,5 @@ class StdioDictionary(StenoDictionary):
             return {}
 
         response = self._communicate({"untranslate": value})
-        out = _get(response, "strokes", list, default=None)
+        out = _get(response, "reverse-translation", list, default=None)
         return {} if out is None else set(str(i) for i in out)

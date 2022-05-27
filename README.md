@@ -42,7 +42,7 @@ The response should be an object with `seq` matching the `seq` value of the inpu
 
 Response keys (all optional):
 * `translation` (for `translate`): The text for a successful translation, if applicable
-* `strokes` (for `untranslate`): The stroke sequence for a successful reverse lookup, if applicable
+* `reverse-translation` (for `untranslate`): The list of stroke sequences for a successful reverse lookup, if applicable
 
 Any output on stderr is relayed back to Plover as an exception, per line.
 
