@@ -1,87 +1,52 @@
-# Plover Python dictionary
+# Plover `stdio` dictionary
 
-Add support for Python dictionaries to Plover.
+Add support for dictionaries written in an arbitrary language communicating via stdio.
+
+This is a fork of [`benoit-pierre/plover_python_dictionary`][1] at version 1.1.0.
+
+
+[1]: https://github.com/benoit-pierre/plover_python_dictionary
 
 
 ## Usage
 
-A Python dictionary is simply a single UTF-8 source file with the following API:
+An stdio dictionary is a shell script, ran in `~/.local/share/plover`
 
-``` python
-# Length of the longest supported key (number of strokes).
-LONGEST_KEY = 1
-
-# Lookup function: return the translation for <key> (a tuple of strokes)
-# or raise KeyError if no translation is available/possible.
-def lookup(key):
-    assert len(key) <= LONGEST_KEY
-    raise KeyError
-
-# Optional: return an array of stroke tuples that would translate back
-# to <text> (an empty array if not possible).
-def reverse_lookup(text):
-    return []
+```
+#!/bin/sh
+./some-dictionary-binary TEFT
 ```
 
-For example save the following code to `show_stroke.py`:
+## Protocol
+The protocol uses JSON for everything except error reporting, with one json object per line.
 
-> **Note**: make sure the file encoding is UTF-8!
-
-``` python
-LONGEST_KEY = 2
-
-SHOW_STROKE_STENO = 'STR*'
-
-def lookup(key):
-    assert len(key) <= LONGEST_KEY, '%d/%d' % (len(key), LONGEST_KEY)
-    if SHOW_STROKE_STENO != key[0]:
-        raise KeyError
-    if len(key) == 1:
-        return ' '
-    return key[1]
+The script first outputs its configuration, in the following form:
+```
+{"longest-key": 5, "max-latency-ms": 100, "untranslate": true}
 ```
 
-Then add it to your dictionaries stack as you would a normal dictionary.
+Default values:
+* `max-latency-ms`: `null` (`null` means it will potentially block forever)
+* `untranslate`: `false`
 
-Now, if you stroke `STR*`, then the next stroke will be shown verbatim
-(untranslated), e.g. `-T STROEBG TP-R KW-GS STROEBG KR-GS S STR* STROEBG`
-outputs: `the stroke for "stroke" is STROEBG`.
+Afterwards it'll receive stroke sequences like
+```
+{"seq": 0, "translate": ["TH", "S", "AEU", "TEFT"]}
+```
+or
+```
+{"seq": 0, "untranslate": "this is a test"}
+```
 
+The response should be an object with `seq` matching the `seq` value of the input.
+
+Response keys (all optional):
+* `translation` (for `translate`): The text for a successful translation, if applicable
+* `strokes` (for `untranslate`): The stroke sequence for a successful reverse lookup, if applicable
+
+Any output on stderr is relayed back to Plover as an exception, per line.
 
 ## Release history
 
-### 1.1.0
-
-* fix type checks for `lookup` and `reverse_lookup`:
-  allow bound methods and functors
-* fix `reverse_lookup` implementation: return a set.
-* fix `__getitem__` / `get` implementations:
-  when the key length is out of bounds
-* fix `__contains__` implementation
-* fix `__delitem__` / `__setitem__` implementations:
-  raise the correct exception type
-
-### 1.0.0
-
-* fix possible encoding issue when loading a dictionary:
-  from now on, assume and force UTF-8
-
-### 0.5.12
-
-* update changelog...
-
-### 0.5.11
-
-* drop support for Python < 3.6
-* fix use of deprecated `imp` module
-* rework tests to use `plover_build_utils.testing`
-* use PEP 517/518
-
-### 0.5.10
-
-* fix `./setup.py test` handling
-* fix default implementation of `reverse_lookup` to return a list (not a tuple)
-
-### 0.5.9
-
-* update to Plover's latest API
+### 0.1
+* Initial release

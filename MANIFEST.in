@@ -1,7 +1,0 @@
-include test/conftest.py
-include test/dict_callable_checks.py
-include test/dict_reverse_lookup.py
-include test/dict_show_stroke.py
-include test/dict_utf8.py
-include pyproject.toml
-include tox.ini
